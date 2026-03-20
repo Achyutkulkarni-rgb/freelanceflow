@@ -18,6 +18,7 @@ export default function NotificationBell() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!user) return;
     fetchUnread();

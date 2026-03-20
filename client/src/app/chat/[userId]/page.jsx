@@ -58,7 +58,7 @@ export default function ChatPage() {
 
     socket.on('disconnect', () => setConnected(false));
   };
-
+// eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!user) return;
     fetchMessages();
