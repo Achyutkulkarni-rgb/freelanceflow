@@ -21,18 +21,6 @@ export default function ChatPage() {
     loadAuth();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    fetchMessages();
-    fetchReceiver();
-    connectSocket();
-    return () => socketRef.current?.disconnect();
-  }, [user]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   const fetchMessages = async () => {
     try {
       const { data } = await api.get(`/messages/${userId}`);
@@ -44,7 +32,7 @@ export default function ChatPage() {
 
   const fetchReceiver = async () => {
     try {
-      const { data } = await api.get(`/auth/me`);
+      await api.get(`/auth/me`);
       setReceiver({ name: 'User', id: userId });
     } catch (err) {
       console.error(err);
@@ -70,6 +58,18 @@ export default function ChatPage() {
 
     socket.on('disconnect', () => setConnected(false));
   };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchMessages();
+    fetchReceiver();
+    connectSocket();
+    return () => socketRef.current?.disconnect();
+  }, [user]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = () => {
     if (!text.trim() || !socketRef.current) return;

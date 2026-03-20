@@ -589,7 +589,7 @@ export default function HomePage() {
           <div className="ff-hero-grid"/>
           <div className="ff-hero-content">
             <div className="ff-hero-badge">
-              ✦ India's smartest freelance marketplace
+              ✦ India&apos;s smartest freelance marketplace
             </div>
             <h1 className="ff-hero-title">
               Find top talent.<br/>

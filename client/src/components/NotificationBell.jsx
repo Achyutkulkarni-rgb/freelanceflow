@@ -9,6 +9,15 @@ export default function NotificationBell() {
   const { user } = useAuthStore();
   const [count, setCount] = useState(0);
 
+  const fetchUnread = async () => {
+    try {
+      const { data } = await api.get('/notifications');
+      setCount(data.filter(n => !n.read).length);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     fetchUnread();
@@ -21,15 +30,6 @@ export default function NotificationBell() {
 
     return () => socket.disconnect();
   }, [user]);
-
-  const fetchUnread = async () => {
-    try {
-      const { data } = await api.get('/notifications');
-      setCount(data.filter(n => !n.read).length);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   return (
     <Link href="/notifications" className="relative">
