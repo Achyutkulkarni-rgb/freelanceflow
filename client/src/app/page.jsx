@@ -11,6 +11,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const categories = [
     { name: 'All', icon: '✦' },
@@ -71,10 +72,10 @@ export default function HomePage() {
           position: sticky;
           top: 0;
           z-index: 100;
-          background: rgba(10, 10, 15, 0.85);
+          background: rgba(10, 10, 15, 0.95);
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(255,255,255,0.06);
-          padding: 0 2rem;
+          padding: 0 1.25rem;
         }
 
         .ff-nav-inner {
@@ -84,7 +85,6 @@ export default function HomePage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 1rem;
         }
 
         .ff-logo {
@@ -96,13 +96,13 @@ export default function HomePage() {
           -webkit-text-fill-color: transparent;
           text-decoration: none;
           letter-spacing: -0.5px;
+          flex-shrink: 0;
         }
 
         .ff-nav-links {
           display: flex;
           align-items: center;
           gap: 0.25rem;
-          flex-wrap: wrap;
         }
 
         .ff-nav-link {
@@ -113,6 +113,7 @@ export default function HomePage() {
           padding: 0.4rem 0.75rem;
           border-radius: 8px;
           transition: all 0.2s;
+          white-space: nowrap;
         }
 
         .ff-nav-link:hover {
@@ -131,12 +132,10 @@ export default function HomePage() {
           transition: all 0.2s;
           border: none;
           cursor: pointer;
+          white-space: nowrap;
         }
 
-        .ff-nav-btn:hover {
-          opacity: 0.85;
-          transform: translateY(-1px);
-        }
+        .ff-nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
 
         .ff-nav-btn-outline {
           background: transparent;
@@ -148,6 +147,92 @@ export default function HomePage() {
         .ff-nav-btn-outline:hover {
           background: rgba(255,255,255,0.06);
           color: #e8e6f0;
+        }
+
+        /* Hamburger */
+        .ff-hamburger {
+          display: none;
+          flex-direction: column;
+          gap: 5px;
+          cursor: pointer;
+          padding: 0.5rem;
+          background: none;
+          border: none;
+        }
+
+        .ff-hamburger span {
+          display: block;
+          width: 22px;
+          height: 2px;
+          background: rgba(232,230,240,0.7);
+          border-radius: 2px;
+          transition: all 0.3s;
+        }
+
+        /* Mobile menu */
+        .ff-mobile-menu {
+          display: none;
+          flex-direction: column;
+          gap: 0.25rem;
+          padding: 1rem 1.25rem 1.25rem;
+          border-top: 1px solid rgba(255,255,255,0.06);
+          background: rgba(10,10,15,0.98);
+        }
+
+        .ff-mobile-menu.open { display: flex; }
+
+        .ff-mobile-link {
+          color: rgba(232,230,240,0.7);
+          text-decoration: none;
+          font-size: 0.95rem;
+          font-weight: 500;
+          padding: 0.75rem 1rem;
+          border-radius: 10px;
+          transition: all 0.2s;
+          border: none;
+          background: none;
+          cursor: pointer;
+          text-align: left;
+          font-family: 'DM Sans', sans-serif;
+        }
+
+        .ff-mobile-link:hover {
+          background: rgba(255,255,255,0.06);
+          color: #e8e6f0;
+        }
+
+        .ff-mobile-btn {
+          background: linear-gradient(135deg, #7c3aed, #2563eb);
+          color: white;
+          text-decoration: none;
+          font-size: 0.95rem;
+          font-weight: 600;
+          padding: 0.75rem 1rem;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          text-align: center;
+          font-family: 'DM Sans', sans-serif;
+          margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+          .ff-nav-links { display: none; }
+          .ff-hamburger { display: flex; }
+          .ff-hero { padding: 4rem 1.25rem 3rem; }
+          .ff-hero-title { letter-spacing: -1px; }
+          .ff-hero-sub br { display: none; }
+          .ff-stats { gap: 1.5rem; }
+          .ff-search-wrap { flex-direction: column; }
+          .ff-search-btn { width: 100%; }
+          .ff-cats { padding: 1.5rem 1rem 1rem; }
+          .ff-section { padding: 1rem 1rem 3rem; }
+          .ff-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        }
+
+        @media (max-width: 480px) {
+          .ff-grid { grid-template-columns: 1fr; }
+          .ff-stat-num { font-size: 1.3rem; }
         }
 
         /* Hero */
@@ -200,7 +285,7 @@ export default function HomePage() {
 
         .ff-hero-title {
           font-family: 'Syne', sans-serif;
-          font-size: clamp(2.8rem, 6vw, 4.5rem);
+          font-size: clamp(2.4rem, 6vw, 4.5rem);
           font-weight: 800;
           line-height: 1.05;
           letter-spacing: -2px;
@@ -215,7 +300,7 @@ export default function HomePage() {
         }
 
         .ff-hero-sub {
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: rgba(232,230,240,0.55);
           font-weight: 300;
           margin-bottom: 2.5rem;
@@ -266,10 +351,7 @@ export default function HomePage() {
           white-space: nowrap;
         }
 
-        .ff-search-btn:hover {
-          opacity: 0.85;
-          transform: translateY(-1px);
-        }
+        .ff-search-btn:hover { opacity: 0.85; transform: translateY(-1px); }
 
         .ff-stats {
           display: flex;
@@ -278,9 +360,7 @@ export default function HomePage() {
           animation: fadeUp 0.6s 0.4s ease both;
         }
 
-        .ff-stat {
-          text-align: center;
-        }
+        .ff-stat { text-align: center; }
 
         .ff-stat-num {
           font-family: 'Syne', sans-serif;
@@ -297,7 +377,6 @@ export default function HomePage() {
           margin-top: 0.2rem;
         }
 
-        /* Categories */
         .ff-cats {
           max-width: 1200px;
           margin: 0 auto;
@@ -335,7 +414,6 @@ export default function HomePage() {
           color: #a78bfa;
         }
 
-        /* Gigs section */
         .ff-section {
           max-width: 1200px;
           margin: 0 auto;
@@ -362,7 +440,6 @@ export default function HomePage() {
           gap: 1.25rem;
         }
 
-        /* Gig Card */
         .ff-card {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
@@ -399,13 +476,9 @@ export default function HomePage() {
           transition: transform 0.4s;
         }
 
-        .ff-card:hover .ff-card-img img {
-          transform: scale(1.05);
-        }
+        .ff-card:hover .ff-card-img img { transform: scale(1.05); }
 
-        .ff-card-body {
-          padding: 1.1rem;
-        }
+        .ff-card-body { padding: 1.1rem; }
 
         .ff-card-seller {
           display: flex;
@@ -428,10 +501,7 @@ export default function HomePage() {
           flex-shrink: 0;
         }
 
-        .ff-seller-name {
-          font-size: 0.8rem;
-          color: rgba(232,230,240,0.5);
-        }
+        .ff-seller-name { font-size: 0.8rem; color: rgba(232,230,240,0.5); }
 
         .ff-card-title {
           font-size: 0.9rem;
@@ -471,7 +541,6 @@ export default function HomePage() {
           -webkit-text-fill-color: transparent;
         }
 
-        /* Skeleton */
         .ff-skeleton {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.06);
@@ -489,18 +558,13 @@ export default function HomePage() {
           margin-bottom: 0.6rem;
         }
 
-        /* Empty state */
         .ff-empty {
           grid-column: 1 / -1;
           text-align: center;
           padding: 5rem 2rem;
         }
 
-        .ff-empty-icon {
-          font-size: 4rem;
-          margin-bottom: 1rem;
-          opacity: 0.5;
-        }
+        .ff-empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
 
         .ff-empty-title {
           font-family: 'Syne', sans-serif;
@@ -515,7 +579,6 @@ export default function HomePage() {
           margin-bottom: 1.5rem;
         }
 
-        /* Animations */
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -526,7 +589,6 @@ export default function HomePage() {
           50% { opacity: 0.5; }
         }
 
-        /* Footer bar */
         .ff-footer {
           border-top: 1px solid rgba(255,255,255,0.06);
           padding: 2rem;
@@ -542,6 +604,8 @@ export default function HomePage() {
         <nav className="ff-nav">
           <div className="ff-nav-inner">
             <Link href="/" className="ff-logo">FreelanceFlow</Link>
+
+            {/* Desktop links */}
             <div className="ff-nav-links">
               {user ? (
                 <>
@@ -555,31 +619,58 @@ export default function HomePage() {
                   <Link href="/profile" className="ff-nav-link">Profile</Link>
                   <NotificationBell />
                   {user.role === 'freelancer' && (
-                    <Link href="/gigs/create" className="ff-nav-btn" style={{ marginLeft: '0.5rem' }}>
-                      + Post Gig
-                    </Link>
+                    <Link href="/gigs/create" className="ff-nav-btn" style={{ marginLeft: '0.5rem' }}>+ Post Gig</Link>
                   )}
                   {user.role === 'client' && (
-                    <Link href="/jobs/create" className="ff-nav-btn" style={{ marginLeft: '0.5rem', background: 'linear-gradient(135deg,#059669,#0d9488)' }}>
-                      + Post Job
-                    </Link>
+                    <Link href="/jobs/create" className="ff-nav-btn" style={{ marginLeft: '0.5rem', background: 'linear-gradient(135deg,#059669,#0d9488)' }}>+ Post Job</Link>
                   )}
-                  <button onClick={logout} className="ff-nav-btn ff-nav-btn-outline" style={{ marginLeft: '0.25rem' }}>
-                    Logout
-                  </button>
+                  <button onClick={logout} className="ff-nav-btn ff-nav-btn-outline" style={{ marginLeft: '0.25rem' }}>Logout</button>
                 </>
               ) : (
                 <>
                   <Link href="/jobs" className="ff-nav-link">Browse Jobs</Link>
-                  <Link href="/login" className="ff-nav-btn ff-nav-btn-outline" style={{ marginLeft: '0.5rem' }}>
-                    Sign in
-                  </Link>
-                  <Link href="/register" className="ff-nav-btn" style={{ marginLeft: '0.25rem' }}>
-                    Get Started →
-                  </Link>
+                  <Link href="/login" className="ff-nav-btn ff-nav-btn-outline" style={{ marginLeft: '0.5rem' }}>Sign in</Link>
+                  <Link href="/register" className="ff-nav-btn" style={{ marginLeft: '0.25rem' }}>Get Started →</Link>
                 </>
               )}
             </div>
+
+            {/* Hamburger */}
+            <button className="ff-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+              <span style={{ transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }}/>
+              <span style={{ opacity: menuOpen ? 0 : 1 }}/>
+              <span style={{ transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }}/>
+            </button>
+          </div>
+
+          {/* Mobile menu */}
+          <div className={`ff-mobile-menu ${menuOpen ? 'open' : ''}`}>
+            {user ? (
+              <>
+                <span style={{ fontSize: '0.85rem', color: 'rgba(232,230,240,0.4)', padding: '0.5rem 1rem' }}>
+                  Hi, {user.name?.split(' ')[0]}
+                </span>
+                <Link href="/dashboard" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+                <Link href="/jobs" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Jobs</Link>
+                <Link href="/ai-proposal" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🤖 AI Proposal</Link>
+                <Link href="/ai-match" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🎯 AI Match</Link>
+                <Link href="/profile" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Profile</Link>
+                <Link href="/notifications" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🔔 Notifications</Link>
+                {user.role === 'freelancer' && (
+                  <Link href="/gigs/create" className="ff-mobile-btn" onClick={() => setMenuOpen(false)}>+ Post Gig</Link>
+                )}
+                {user.role === 'client' && (
+                  <Link href="/jobs/create" className="ff-mobile-btn" onClick={() => setMenuOpen(false)} style={{ background: 'linear-gradient(135deg,#059669,#0d9488)' }}>+ Post Job</Link>
+                )}
+                <button onClick={() => { logout(); setMenuOpen(false); }} className="ff-mobile-link" style={{ color: '#f87171' }}>Logout</button>
+              </>
+            ) : (
+              <>
+                <Link href="/jobs" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Browse Jobs</Link>
+                <Link href="/login" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Sign in</Link>
+                <Link href="/register" className="ff-mobile-btn" onClick={() => setMenuOpen(false)}>Get Started →</Link>
+              </>
+            )}
           </div>
         </nav>
 
