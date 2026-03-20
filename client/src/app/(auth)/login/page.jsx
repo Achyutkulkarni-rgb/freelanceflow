@@ -19,7 +19,7 @@ export default function LoginPage() {
       const { data } = await api.post('/auth/login', form);
       setAuth(data.user, data.token);
       toast.success('Welcome back!');
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
