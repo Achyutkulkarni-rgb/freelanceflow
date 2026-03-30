@@ -210,4 +210,180 @@ Output ONLY valid JSON, no explanation.`
   }
 });
 
+// AI Interview Prep
+router.post('/interview-prep', async (req, res) => {
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const { jobDescription, skills, experience, jobTitle } = req.body;
+
+    if (!jobDescription && !jobTitle) {
+      return res.status(400).json({ message: 'Job description or title is required' });
+    }
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{
+        role: 'user',
+        content: `You are an expert interview coach. Generate 50 interview questions with answers for real company interviews.
+
+Job Title: ${jobTitle || 'Software Developer'}
+Skills: ${skills || 'Not specified'}
+Experience: ${experience || 'Fresher'}
+Job Description: ${jobDescription ? jobDescription.slice(0, 400) : 'Not specified'}
+
+Rules:
+- 20 Technical, 15 Behavioral, 10 HR, 5 Company/Role questions
+- question: max 100 characters
+- answer: max 150 characters, 1-2 sentences only
+- tip: max 60 characters
+
+Return ONLY a compact JSON array, no spaces between fields:
+[{"id":1,"category":"Technical","difficulty":"Easy","question":"...","answer":"...","tip":"..."}]
+
+Output ONLY valid JSON, nothing else.`
+      }],
+      max_tokens: 4096,
+      temperature: 0.5,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    const clean = content.replace(/```json|```/g, '').trim();
+
+    let jsonStr = clean;
+    if (!jsonStr.endsWith(']')) {
+      const lastComplete = jsonStr.lastIndexOf('},');
+      if (lastComplete !== -1) {
+        jsonStr = jsonStr.slice(0, lastComplete + 1) + ']';
+      } else {
+        jsonStr = jsonStr + ']';
+      }
+    }
+
+    const questions = JSON.parse(jsonStr);
+    res.json({ questions });
+
+  } catch (err) {
+    console.log('Interview prep error:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// AI LinkedIn Bio Generator
+router.post('/linkedin-bio', async (req, res) => {
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const { name, currentRole, skills, experience, achievements, education, targetRole } = req.body;
+
+    if (!name && !currentRole && !skills) {
+      return res.status(400).json({ message: 'Please provide at least your name, role or skills' });
+    }
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{
+        role: 'user',
+        content: `You are a LinkedIn profile expert who has helped thousands of professionals land jobs at top companies.
+
+Generate a complete LinkedIn profile kit for:
+Name: ${name || 'Not specified'}
+Current Role: ${currentRole || 'Not specified'}
+Skills: ${skills || 'Not specified'}
+Experience: ${experience || 'Not specified'}
+Achievements: ${achievements || 'Not specified'}
+Education: ${education || 'Not specified'}
+Target Role: ${targetRole || 'Open to opportunities'}
+
+Return a JSON object with exactly these fields:
+{
+  "headline": "compelling LinkedIn headline under 220 chars with keywords",
+  "about": "professional LinkedIn About section, 3-4 paragraphs, 2000-2600 chars, first person, includes: who you are, what you do, key achievements, skills, call to action",
+  "connectionMessage": "personalized connection request message under 300 chars",
+  "skills": ["top 10 skills to add on LinkedIn as array"],
+  "openToWork": "open to work section text under 200 chars"
+}
+
+Make the about section engaging, keyword-rich for recruiters, and authentic.
+Output ONLY valid JSON, no explanation.`
+      }],
+      max_tokens: 2048,
+      temperature: 0.7,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    const clean = content.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    res.json(parsed);
+
+  } catch (err) {
+    console.log('LinkedIn bio error:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// AI Cold Email Generator
+router.post('/cold-email', async (req, res) => {
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const { senderName, senderRole, skills, targetCompany, targetRole, recruiterName } = req.body;
+
+    if (!senderName || !targetCompany) {
+      return res.status(400).json({ message: 'Your name and target company are required' });
+    }
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{
+        role: 'user',
+        content: `You are an expert at writing cold emails that get responses from recruiters and hiring managers.
+
+Sender: ${senderName}
+Sender Role/Title: ${senderRole || 'Software Developer'}
+Skills: ${skills || 'Not specified'}
+Target Company: ${targetCompany}
+Target Role: ${targetRole || 'Software Engineer'}
+Recruiter Name: ${recruiterName || 'Hiring Manager'}
+
+Generate 3 different cold email variations:
+1. Short & punchy (under 100 words)
+2. Value-focused (150-200 words)
+3. Story-driven (200-250 words)
+
+Return a JSON object:
+{
+  "emails": [
+    {
+      "type": "Short & Punchy",
+      "subject": "email subject line",
+      "body": "email body"
+    },
+    {
+      "type": "Value-Focused",
+      "subject": "email subject line",
+      "body": "email body"
+    },
+    {
+      "type": "Story-Driven",
+      "subject": "email subject line",
+      "body": "email body"
+    }
+  ]
+}
+
+Make emails professional, personalized and compelling. Output ONLY valid JSON.`
+      }],
+      max_tokens: 2048,
+      temperature: 0.7,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    const clean = content.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    res.json(parsed);
+
+  } catch (err) {
+    console.log('Cold email error:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

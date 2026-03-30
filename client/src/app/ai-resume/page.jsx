@@ -63,7 +63,11 @@ export default function AIResumePage() {
           ul { padding-left: 18px; margin-top: 3px; }
           li { margin-bottom: 2px; font-size: 11.5px; }
           .project-title { font-weight: bold; font-size: 11.5px; margin-top: 7px; margin-bottom: 2px; }
-          @media print { .no-print { display: none; } body { padding: 20px 30px; } }
+          @media print {
+  @page { margin: 0; size: A4; }
+  .no-print { display: none; }
+  body { padding: 20px 30px; }
+}
         </style>
       </head>
       <body>

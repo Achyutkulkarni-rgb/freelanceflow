@@ -616,6 +616,7 @@ export default function HomePage() {
                   <Link href="/jobs" className="ff-nav-link">Jobs</Link>
                   <Link href="/ai-proposal" className="ff-nav-link">🤖 AI</Link>
                   <Link href="/ai-resume" className="ff-nav-link">📄 Resume</Link>
+                  <Link href="/ai-interview" className="ff-nav-link">🎤 Interview</Link>
                   <Link href="/ai-match" className="ff-nav-link">🎯 Match</Link>
                   <Link href="/profile" className="ff-nav-link">Profile</Link>
                   <NotificationBell />
@@ -655,6 +656,10 @@ export default function HomePage() {
                 <Link href="/jobs" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Jobs</Link>
                 <Link href="/ai-proposal" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🤖 AI Proposal</Link>
                 <Link href="/ai-match" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🎯 AI Match</Link>
+                <Link href="/ai-resume" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>📄 AI Resume</Link>
+                <Link href="/ai-interview" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🎤 Interview Prep</Link>
+                <Link href="/ai-linkedin" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>💼 LinkedIn Bio</Link>
+                <Link href="/ai-cold-email" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>✉️ Cold Email</Link>
                 <Link href="/profile" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Profile</Link>
                 <Link href="/notifications" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🔔 Notifications</Link>
                 {user.role === 'freelancer' && (
