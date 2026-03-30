@@ -70,6 +70,8 @@ client/node_modules/
 # next.js
 /.next/
 /out/
+client/.next/
+server/.next/
 
 # production
 /build

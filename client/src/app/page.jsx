@@ -615,6 +615,7 @@ export default function HomePage() {
                   <Link href="/dashboard" className="ff-nav-link">Dashboard</Link>
                   <Link href="/jobs" className="ff-nav-link">Jobs</Link>
                   <Link href="/ai-proposal" className="ff-nav-link">🤖 AI</Link>
+                  <Link href="/ai-resume" className="ff-nav-link">📄 Resume</Link>
                   <Link href="/ai-match" className="ff-nav-link">🎯 Match</Link>
                   <Link href="/profile" className="ff-nav-link">Profile</Link>
                   <NotificationBell />
