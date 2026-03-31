@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import useAuthStore from '@/store/authStore';
@@ -12,6 +12,17 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
+  const aiDropdownRef = useRef(null);
+
+  const aiFeatures = [
+    { href: '/ai-proposal', icon: '🤖', label: 'AI Proposal' },
+    { href: '/ai-match', icon: '🎯', label: 'AI Job Match' },
+    { href: '/ai-resume', icon: '📄', label: 'Resume Tailor' },
+    { href: '/ai-interview', icon: '🎤', label: 'Interview Prep' },
+    { href: '/ai-linkedin', icon: '💼', label: 'LinkedIn Bio' },
+    { href: '/ai-cold-email', icon: '✉️', label: 'Cold Email' },
+  ];
 
   const categories = [
     { name: 'All', icon: '✦' },
@@ -26,6 +37,17 @@ export default function HomePage() {
   useEffect(() => {
     loadAuth();
     fetchGigs();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (aiDropdownRef.current && !aiDropdownRef.current.contains(e.target)) {
+        setAiDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
   const fetchGigs = async (searchTerm = '', cat = '') => {
@@ -149,6 +171,93 @@ export default function HomePage() {
           color: #e8e6f0;
         }
 
+        /* AI Dropdown */
+        .ai-dropdown-wrap {
+          position: relative;
+        }
+
+        .ai-dropdown-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          color: rgba(232,230,240,0.6);
+          font-size: 0.85rem;
+          font-weight: 500;
+          padding: 0.4rem 0.75rem;
+          border-radius: 8px;
+          transition: all 0.2s;
+          white-space: nowrap;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+        }
+
+        .ai-dropdown-btn:hover, .ai-dropdown-btn.open {
+          color: #e8e6f0;
+          background: rgba(255,255,255,0.06);
+        }
+
+        .ai-dropdown-btn.open {
+          background: rgba(124,58,237,0.15);
+          color: #a78bfa;
+        }
+
+        .ai-dropdown-arrow {
+          font-size: 0.65rem;
+          transition: transform 0.2s;
+        }
+
+        .ai-dropdown-arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .ai-dropdown-menu {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(15,12,25,0.98);
+          border: 1px solid rgba(124,58,237,0.25);
+          border-radius: 16px;
+          padding: 0.5rem;
+          min-width: 200px;
+          backdrop-filter: blur(20px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1);
+          z-index: 200;
+          animation: dropIn 0.15s ease both;
+        }
+
+        @keyframes dropIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .ai-dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.6rem 0.875rem;
+          border-radius: 10px;
+          color: rgba(232,230,240,0.7);
+          text-decoration: none;
+          font-size: 0.85rem;
+          font-weight: 500;
+          transition: all 0.15s;
+          white-space: nowrap;
+        }
+
+        .ai-dropdown-item:hover {
+          background: rgba(124,58,237,0.15);
+          color: #e8e6f0;
+        }
+
+        .ai-dropdown-item-icon {
+          font-size: 1rem;
+          width: 20px;
+          text-align: center;
+        }
+
         /* Hamburger */
         .ff-hamburger {
           display: none;
@@ -201,6 +310,15 @@ export default function HomePage() {
           color: #e8e6f0;
         }
 
+        .ff-mobile-section {
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: rgba(232,230,240,0.3);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          padding: 0.75rem 1rem 0.25rem;
+        }
+
         .ff-mobile-btn {
           background: linear-gradient(135deg, #7c3aed, #2563eb);
           color: white;
@@ -235,7 +353,6 @@ export default function HomePage() {
           .ff-stat-num { font-size: 1.3rem; }
         }
 
-        /* Hero */
         .ff-hero {
           position: relative;
           overflow: hidden;
@@ -477,7 +594,6 @@ export default function HomePage() {
         }
 
         .ff-card:hover .ff-card-img img { transform: scale(1.05); }
-
         .ff-card-body { padding: 1.1rem; }
 
         .ff-card-seller {
@@ -614,10 +730,33 @@ export default function HomePage() {
                   </span>
                   <Link href="/dashboard" className="ff-nav-link">Dashboard</Link>
                   <Link href="/jobs" className="ff-nav-link">Jobs</Link>
-                  <Link href="/ai-proposal" className="ff-nav-link">🤖 AI</Link>
-                  <Link href="/ai-resume" className="ff-nav-link">📄 Resume</Link>
-                  <Link href="/ai-interview" className="ff-nav-link">🎤 Interview</Link>
-                  <Link href="/ai-match" className="ff-nav-link">🎯 Match</Link>
+
+                  {/* AI Dropdown */}
+                  <div className="ai-dropdown-wrap" ref={aiDropdownRef}>
+                    <button
+                      className={`ai-dropdown-btn ${aiDropdownOpen ? 'open' : ''}`}
+                      onClick={() => setAiDropdownOpen(!aiDropdownOpen)}
+                    >
+                      🤖 AI Tools
+                      <span className={`ai-dropdown-arrow ${aiDropdownOpen ? 'open' : ''}`}>▾</span>
+                    </button>
+                    {aiDropdownOpen && (
+                      <div className="ai-dropdown-menu">
+                        {aiFeatures.map(f => (
+                          <Link
+                            key={f.href}
+                            href={f.href}
+                            className="ai-dropdown-item"
+                            onClick={() => setAiDropdownOpen(false)}
+                          >
+                            <span className="ai-dropdown-item-icon">{f.icon}</span>
+                            {f.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <Link href="/profile" className="ff-nav-link">Profile</Link>
                   <NotificationBell />
                   {user.role === 'freelancer' && (
@@ -654,14 +793,17 @@ export default function HomePage() {
                 </span>
                 <Link href="/dashboard" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
                 <Link href="/jobs" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Jobs</Link>
-                <Link href="/ai-proposal" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🤖 AI Proposal</Link>
-                <Link href="/ai-match" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🎯 AI Match</Link>
-                <Link href="/ai-resume" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>📄 AI Resume</Link>
-                <Link href="/ai-interview" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🎤 Interview Prep</Link>
-                <Link href="/ai-linkedin" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>💼 LinkedIn Bio</Link>
-                <Link href="/ai-cold-email" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>✉️ Cold Email</Link>
                 <Link href="/profile" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>Profile</Link>
                 <Link href="/notifications" className="ff-mobile-link" onClick={() => setMenuOpen(false)}>🔔 Notifications</Link>
+
+                {/* AI section in mobile */}
+                <div className="ff-mobile-section">🤖 AI Tools</div>
+                {aiFeatures.map(f => (
+                  <Link key={f.href} href={f.href} className="ff-mobile-link" onClick={() => setMenuOpen(false)}>
+                    {f.icon} {f.label}
+                  </Link>
+                ))}
+
                 {user.role === 'freelancer' && (
                   <Link href="/gigs/create" className="ff-mobile-btn" onClick={() => setMenuOpen(false)}>+ Post Gig</Link>
                 )}
@@ -697,13 +839,7 @@ export default function HomePage() {
               writing and more — powered by AI job matching.
             </p>
             <form onSubmit={handleSearch} className="ff-search-wrap">
-              <input
-                className="ff-search-input"
-                type="text"
-                placeholder="Search for any service..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <input className="ff-search-input" type="text" placeholder="Search for any service..." value={search} onChange={(e) => setSearch(e.target.value)} />
               <button type="submit" className="ff-search-btn">Search</button>
             </form>
             <div className="ff-stats">
@@ -726,11 +862,8 @@ export default function HomePage() {
         {/* Categories */}
         <div className="ff-cats">
           {categories.map((cat) => (
-            <button
-              key={cat.name}
-              onClick={() => handleCategory(cat.name)}
-              className={`ff-cat-btn ${(cat.name === 'All' && category === '') || cat.name === category ? 'active' : ''}`}
-            >
+            <button key={cat.name} onClick={() => handleCategory(cat.name)}
+              className={`ff-cat-btn ${(cat.name === 'All' && category === '') || cat.name === category ? 'active' : ''}`}>
               <span>{cat.icon}</span>
               {cat.name}
             </button>
@@ -740,12 +873,8 @@ export default function HomePage() {
         {/* Gigs Grid */}
         <div className="ff-section">
           <div className="ff-section-header">
-            <h2 className="ff-section-title">
-              {category ? `${category} Services` : 'All Services'}
-            </h2>
-            <span style={{ fontSize: '0.85rem', color: 'rgba(232,230,240,0.35)' }}>
-              {gigs.length} results
-            </span>
+            <h2 className="ff-section-title">{category ? `${category} Services` : 'All Services'}</h2>
+            <span style={{ fontSize: '0.85rem', color: 'rgba(232,230,240,0.35)' }}>{gigs.length} results</span>
           </div>
 
           <div className="ff-grid">
@@ -766,26 +895,18 @@ export default function HomePage() {
                 <h3 className="ff-empty-title">No gigs yet</h3>
                 <p className="ff-empty-sub">Be the first to post a service!</p>
                 {user?.role === 'freelancer' && (
-                  <Link href="/gigs/create" className="ff-nav-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
-                    Post a Gig
-                  </Link>
+                  <Link href="/gigs/create" className="ff-nav-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>Post a Gig</Link>
                 )}
               </div>
             ) : (
               gigs.map((gig) => (
                 <Link href={`/gigs/${gig._id}`} key={gig._id} className="ff-card">
                   <div className="ff-card-img">
-                    {gig.images?.[0] ? (
-                      <img src={gig.images[0]} alt={gig.title}/>
-                    ) : (
-                      <span>💼</span>
-                    )}
+                    {gig.images?.[0] ? <img src={gig.images[0]} alt={gig.title}/> : <span>💼</span>}
                   </div>
                   <div className="ff-card-body">
                     <div className="ff-card-seller">
-                      <div className="ff-avatar">
-                        {gig.freelancer?.name?.[0]?.toUpperCase()}
-                      </div>
+                      <div className="ff-avatar">{gig.freelancer?.name?.[0]?.toUpperCase()}</div>
                       <span className="ff-seller-name">{gig.freelancer?.name}</span>
                     </div>
                     <p className="ff-card-title">{gig.title}</p>
@@ -803,9 +924,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="ff-footer">
-          © 2026 FreelanceFlow · Built with ❤️ in India
-        </div>
+        <div className="ff-footer">© 2026 FreelanceFlow · Built with ❤️ in India</div>
       </div>
     </>
   );

@@ -8,6 +8,7 @@ export default function AIResumePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [template, setTemplate] = useState('classic');
 
   const handleSubmit = async () => {
     if (!file || !jobDescription.trim()) {
@@ -40,125 +41,147 @@ export default function AIResumePage() {
     }
   };
 
-  const handleDownloadPDF = () => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Tailored Resume</title>
+  const parseResume = () => {
+    const lines = result.originalText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const sectionKeywords = ['summary', 'objective', 'profile', 'about'];
+    const skillKeywords = ['skills', 'technical skills', 'core competencies', 'key skills'];
+    const otherSections = ['experience', 'work experience', 'employment', 'internship', 'education', 'projects', 'certifications', 'awards', 'languages', 'interests', 'references'];
+
+    const isSummarySection = (line) => sectionKeywords.some(k => line.toLowerCase().includes(k));
+    const isSkillSection = (line) => skillKeywords.some(k => line.toLowerCase().includes(k));
+    const isOtherSection = (line) => otherSections.some(k => line.toLowerCase().startsWith(k));
+    const isSectionHeader = (line) => isSummarySection(line) || isSkillSection(line) || isOtherSection(line);
+
+    let i = 0;
+    let summaryDone = false;
+    let skillsDone = false;
+    const headerLines = [];
+    const sections = [];
+
+    while (i < lines.length && !isSectionHeader(lines[i]) && i < 6) {
+      headerLines.push(lines[i]);
+      i++;
+    }
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      if (isSummarySection(line) && !summaryDone) {
+        sections.push({ title: line, content: result.summary, type: 'summary' });
+        summaryDone = true;
+        i++;
+        while (i < lines.length && !isSectionHeader(lines[i])) i++;
+        continue;
+      }
+
+      if (isSkillSection(line) && !skillsDone) {
+        sections.push({ title: line, content: result.skills, type: 'skills' });
+        skillsDone = true;
+        i++;
+        while (i < lines.length && !isSectionHeader(lines[i])) i++;
+        continue;
+      }
+
+      if (isOtherSection(line)) {
+        let content = '';
+        i++;
+        while (i < lines.length && !isSectionHeader(lines[i])) {
+          content += lines[i] + '\n';
+          i++;
+        }
+        sections.push({ title: line, content: content.trim(), type: 'other' });
+        continue;
+      }
+
+      i++;
+    }
+
+    if (!summaryDone) sections.unshift({ title: 'PROFESSIONAL SUMMARY', content: result.summary, type: 'summary' });
+    if (!skillsDone) {
+      const summaryIdx = sections.findIndex(s => s.type === 'summary');
+      sections.splice(summaryIdx + 1, 0, { title: 'SKILLS', content: result.skills, type: 'skills' });
+    }
+
+    return { headerLines, sections };
+  };
+
+  const handleDownloadPDF = (tmpl) => {
+    const { headerLines, sections } = parseResume();
+    const name = headerLines[0] || '';
+    const contact = headerLines.slice(1).join(' | ');
+
+    let bodyHTML = '';
+
+    if (tmpl === 'classic') {
+      bodyHTML = `
+        <!DOCTYPE html><html><head><title>Tailored Resume</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Arial, sans-serif; max-width: 780px; margin: 0 auto; padding: 32px 40px; color: #1a1a1a; font-size: 12px; line-height: 1.5; }
-          .no-print { background:#fffbe6; border:1px solid #f0c040; padding:10px 14px; border-radius:6px; margin-bottom:20px; font-size:11px; color:#7a5c00; }
-          .name { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
-          .contact { font-size: 11px; color: #444; margin-bottom: 16px; border-bottom: 1.5px solid #bbb; padding-bottom: 10px; }
-          .section { margin-bottom: 14px; }
-          .section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #999; padding-bottom: 2px; margin-bottom: 7px; letter-spacing: 0.04em; color: #111; }
-          .body-text { font-size: 11.5px; line-height: 1.6; }
-          .job-header { display: flex; justify-content: space-between; align-items: baseline; margin-top: 7px; margin-bottom: 2px; }
-          .job-title { font-weight: bold; font-size: 11.5px; }
-          .job-date { font-size: 11px; color: #444; }
-          .job-sub { font-size: 11px; color: #555; margin-bottom: 4px; }
-          ul { padding-left: 18px; margin-top: 3px; }
-          li { margin-bottom: 2px; font-size: 11.5px; }
-          .project-title { font-weight: bold; font-size: 11.5px; margin-top: 7px; margin-bottom: 2px; }
-          @media print {
-  @page { margin: 0; size: A4; }
-  .no-print { display: none; }
-  body { padding: 20px 30px; }
-}
-        </style>
-      </head>
-      <body>
-        <div class="no-print">
-          💡 To save as PDF: Press <strong>Ctrl+P</strong> (Cmd+P on Mac) → Destination: <strong>Save as PDF</strong> → Save
-        </div>
-
-        <div class="name">Achyut Kulkarni</div>
-        <div class="contact">+91-9620533824 &nbsp;|&nbsp; achyutk105@gmail.com &nbsp;|&nbsp; linkedin.com/in/achyut03</div>
-
-        <div class="section">
-          <div class="section-title">Profile Summary</div>
-          <div class="body-text">${result.summary}</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Skills</div>
-          <div class="body-text">${result.skills}</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Internship Experience</div>
-
-          <div class="job-header">
-            <div class="job-title">Backend Developer Intern – Amealio</div>
-            <div class="job-date">Feb 2026 - March 2026</div>
+          *{box-sizing:border-box;margin:0;padding:0;}
+          body{font-family:Arial,sans-serif;max-width:780px;margin:0 auto;padding:32px 40px;color:#1a1a1a;font-size:12px;line-height:1.5;}
+          .no-print{background:#fffbe6;border:1px solid #f0c040;padding:10px 14px;border-radius:6px;margin-bottom:20px;font-size:11px;color:#7a5c00;}
+          .name{font-size:22px;font-weight:bold;margin-bottom:4px;}
+          .contact{font-size:11px;color:#444;margin-bottom:16px;border-bottom:1.5px solid #bbb;padding-bottom:10px;}
+          .section{margin-bottom:14px;}
+          .section-title{font-size:11px;font-weight:bold;text-transform:uppercase;border-bottom:1px solid #999;padding-bottom:2px;margin-bottom:7px;letter-spacing:0.04em;color:#111;}
+          .body-text{font-size:11.5px;line-height:1.6;white-space:pre-wrap;}
+          .highlight{background:#f5f5ff;border-left:3px solid #6040c0;padding:6px 10px;}
+          @media print{@page{margin:0;size:A4;}.no-print{display:none;}body{padding:20px 30px;}}
+        </style></head><body>
+        <div class="no-print">💡 Press <strong>Ctrl+P</strong> → Save as PDF → uncheck "Headers and footers" → Save</div>
+        <div class="name">${name}</div>
+        <div class="contact">${contact}</div>
+        ${sections.map(s => `
+          <div class="section">
+            <div class="section-title">${s.title}</div>
+            <div class="body-text ${s.type === 'summary' || s.type === 'skills' ? 'highlight' : ''}">${s.content}</div>
           </div>
-          <div class="job-sub">Backend Development</div>
-          <ul>
-            <li>Developed backend services and APIs using Node.js and Express.js for application functionality.</li>
-            <li>Worked on database integration, data handling, and server-side logic using MongoDB.</li>
-            <li>Improved API performance, debugging issues, and ensured efficient data processing.</li>
-          </ul>
+        `).join('')}
+        </body></html>`;
+    } else {
+      // Modern 2-column
+      const sidebarSections = sections.filter(s => s.type === 'skills' || s.title.toLowerCase().includes('certif') || s.title.toLowerCase().includes('language') || s.title.toLowerCase().includes('educat'));
+      const mainSections = sections.filter(s => !sidebarSections.includes(s));
 
-          <div class="job-header">
-            <div class="job-title">Intern – KodNest Technologies</div>
-            <div class="job-date">Apr 2025 – Oct 2025</div>
-          </div>
-          <div class="job-sub">Full Stack Development Internship, Bengaluru</div>
-          <ul>
-            <li>Completed full-stack curriculum covering Java, Spring Boot, React.js, Node.js, MongoDB, and SQL.</li>
-            <li>Developed REST APIs, CRUD operations, authentication modules, and integrated front-end with backend services.</li>
-            <li>Enhanced debugging skills, code optimization techniques, and industry-standard coding practices through real-time modules.</li>
-          </ul>
+      bodyHTML = `
+        <!DOCTYPE html><html><head><title>Tailored Resume</title>
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0;}
+          body{font-family:Arial,sans-serif;color:#1a1a1a;font-size:12px;line-height:1.5;display:flex;min-height:100vh;}
+          .no-print{position:fixed;top:0;left:0;right:0;background:#fffbe6;border-bottom:1px solid #f0c040;padding:8px 16px;font-size:11px;color:#7a5c00;z-index:100;}
+          .sidebar{width:200px;min-width:200px;background:#1e1b4b;color:#e8e6f0;padding:28px 16px;flex-shrink:0;}
+          .main{flex:1;padding:28px 24px;}
+          .s-name{font-size:16px;font-weight:bold;color:white;margin-bottom:4px;word-break:break-word;}
+          .s-contact{font-size:10px;color:#c4b5fd;margin-bottom:20px;line-height:1.8;}
+          .s-section-title{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:0.06em;color:#a78bfa;border-bottom:1px solid rgba(167,139,250,0.3);padding-bottom:3px;margin-bottom:7px;margin-top:14px;}
+          .s-body{font-size:10.5px;color:#d1d5db;line-height:1.6;white-space:pre-wrap;}
+          .m-section-title{font-size:11px;font-weight:bold;text-transform:uppercase;border-bottom:1.5px solid #1e1b4b;padding-bottom:2px;margin-bottom:7px;letter-spacing:0.04em;color:#1e1b4b;margin-top:14px;}
+          .m-body{font-size:11.5px;line-height:1.6;white-space:pre-wrap;}
+          .highlight{background:#f0f0ff;padding:6px 8px;border-radius:4px;}
+          .top-name{font-size:22px;font-weight:bold;color:#1e1b4b;margin-bottom:2px;}
+          .top-role{font-size:12px;color:#6040c0;margin-bottom:12px;font-weight:500;}
+          @media print{@page{margin:0;size:A4;}.no-print{display:none;}body{font-size:11px;}}
+        </style></head><body>
+        <div class="no-print">💡 Press <strong>Ctrl+P</strong> → Save as PDF → uncheck "Headers and footers" → Save</div>
+        <div class="sidebar">
+          <div class="s-name">${name}</div>
+          <div class="s-contact">${contact.split('|').join('\n')}</div>
+          ${sidebarSections.map(s => `
+            <div class="s-section-title">${s.title}</div>
+            <div class="s-body ${s.type === 'skills' ? 'highlight' : ''}" style="${s.type === 'skills' ? 'background:rgba(167,139,250,0.15);padding:6px 8px;border-radius:4px;color:#e8e6f0;' : ''}">${s.content}</div>
+          `).join('')}
         </div>
-
-        <div class="section">
-          <div class="section-title">Projects</div>
-
-          <div class="project-title">SkillSwap – Skill Matching Web Platform | React.js, Node.js, MongoDB &nbsp;&nbsp; Aug 2025 – Present</div>
-          <ul>
-            <li>Developed a full-stack platform enabling users to connect, collaborate, and exchange skills.</li>
-            <li>Implemented JWT-based authentication ensuring secure login, session management, and data protection.</li>
-            <li>Integrated real-time chat functionality using WebSocket for instant communication.</li>
-          </ul>
-
-          <div class="project-title">Vehicle Movement Analysis using Edge AI – Intel &nbsp;&nbsp; May 2024 – Jul 2024</div>
-          <ul>
-            <li>Built an Edge AI pipeline to classify and analyze vehicle movement and traffic patterns.</li>
-            <li>Performed local inference without cloud dependency, improving speed, privacy, and efficiency.</li>
-            <li>Generated insights for traffic density analysis and anomaly detection.</li>
-          </ul>
-
-          <div class="project-title">Solar Powered Water Pump Smart Irrigation System | Python, IoT Sensors &nbsp;&nbsp; Mar 2025 – Jun 2025</div>
-          <ul>
-            <li>Designed an automated irrigation system powered by solar energy to optimize agricultural water usage.</li>
-            <li>Integrated soil moisture sensors for real-time monitoring, pump control, and automated irrigation decisions.</li>
-          </ul>
+        <div class="main">
+          ${mainSections.map((s, idx) => `
+            ${idx === 0 ? `<div class="top-name" style="display:none">${name}</div>` : ''}
+            <div class="m-section-title">${s.title}</div>
+            <div class="m-body ${s.type === 'summary' ? 'highlight' : ''}">${s.content}</div>
+          `).join('')}
         </div>
+        </body></html>`;
+    }
 
-        <div class="section">
-          <div class="section-title">Awards & Certifications</div>
-          <ul>
-            <li>ISRO – Internship Completion Certificate (Participation).</li>
-            <li>Intel – Project Internship Certificate (Edge AI).</li>
-            <li>Internshala – Web Development Professional Certification.</li>
-          </ul>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Education</div>
-          <div class="job-header">
-            <div class="job-title">B.Tech in Electronics and Communication Engineering</div>
-            <div class="job-date">Dec 2021 – Jun 2025</div>
-          </div>
-          <div class="body-text">Sharnbasva University, Kalaburagi &nbsp;&nbsp; CGPA: 8.78 / 10</div>
-        </div>
-
-      </body>
-      </html>
-    `);
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(bodyHTML);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => { printWindow.print(); }, 600);
@@ -181,40 +204,31 @@ export default function AIResumePage() {
         .ar-section-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
         .ar-section-title { font-size: 0.75rem; font-weight: 600; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
         .ar-section-text { font-size: 0.88rem; line-height: 1.7; color: #e8e6f0; white-space: pre-wrap; }
+        .tmpl-btn { padding: 0.6rem 1rem; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(232,230,240,0.6); font-size: 0.85rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; font-weight: 500; flex: 1; }
+        .tmpl-btn.active { border-color: rgba(124,58,237,0.6); background: rgba(124,58,237,0.15); color: #a78bfa; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         @media (max-width: 640px) { .ar-grid { grid-template-columns: 1fr !important; } }
       `}</style>
 
       <div className="ar-page">
-        {/* Navbar */}
         <nav style={{ background: 'rgba(10,10,15,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 1.5rem', position: 'sticky', top: 0, zIndex: 100 }}>
           <div style={{ maxWidth: '960px', margin: '0 auto', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Link href="/" style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: '1.3rem', background: 'linear-gradient(135deg,#a78bfa,#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textDecoration: 'none' }}>
-              FreelanceFlow
-            </Link>
+            <Link href="/" style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: '1.3rem', background: 'linear-gradient(135deg,#a78bfa,#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textDecoration: 'none' }}>FreelanceFlow</Link>
             <Link href="/" style={{ fontSize: '0.85rem', color: 'rgba(232,230,240,0.5)', textDecoration: 'none' }}>← Back</Link>
           </div>
         </nav>
 
         <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-
-          {/* Header */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '100px', padding: '0.35rem 1rem', fontSize: '0.8rem', color: '#a78bfa', marginBottom: '1rem' }}>
-              ✦ AI Powered
-            </div>
-            <h1 style={{ fontFamily: 'Syne', fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, letterSpacing: '-1px', marginBottom: '0.5rem' }}>
-              AI Resume Tailor
-            </h1>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '100px', padding: '0.35rem 1rem', fontSize: '0.8rem', color: '#a78bfa', marginBottom: '1rem' }}>✦ AI Powered</div>
+            <h1 style={{ fontFamily: 'Syne', fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, letterSpacing: '-1px', marginBottom: '0.5rem' }}>AI Resume Tailor</h1>
             <p style={{ color: 'rgba(232,230,240,0.5)', fontSize: '0.95rem' }}>
-              Upload your resume → paste job description → AI rewrites only your <strong style={{ color: '#a78bfa' }}>Summary & Skills</strong> to match the job → download as PDF.
+              Upload your resume → paste job description → AI rewrites only your <strong style={{ color: '#a78bfa' }}>Summary & Skills</strong> → choose template → download as PDF.
             </p>
           </div>
 
           <div className="ar-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-
-            {/* Left — Inputs */}
             <div>
               <div className="ar-card">
                 <h2 style={{ fontFamily: 'Syne', fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem' }}>📄 Your Resume</h2>
@@ -240,7 +254,7 @@ export default function AIResumePage() {
               <div className="ar-card">
                 <h2 style={{ fontFamily: 'Syne', fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem' }}>💼 Job Description</h2>
                 <label className="ar-label">Paste the job description</label>
-                <textarea className="ar-input" rows={8} placeholder="Paste the full job description here — requirements, responsibilities, skills needed..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} style={{ resize: 'none' }} />
+                <textarea className="ar-input" rows={8} placeholder="Paste the full job description here..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} style={{ resize: 'none' }} />
               </div>
 
               {error && (
@@ -259,17 +273,9 @@ export default function AIResumePage() {
               </button>
             </div>
 
-            {/* Right — Result */}
             <div>
               <div className="ar-card" style={{ minHeight: '400px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <h2 style={{ fontFamily: 'Syne', fontSize: '1rem', fontWeight: 700 }}>🎯 Tailored Sections</h2>
-                  {result && (
-                    <button onClick={handleDownloadPDF} style={{ background: 'rgba(5,150,105,0.2)', border: '1px solid rgba(5,150,105,0.4)', color: '#34d399', borderRadius: '8px', padding: '0.4rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans' }}>
-                      ⬇ Download PDF
-                    </button>
-                  )}
-                </div>
+                <h2 style={{ fontFamily: 'Syne', fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem' }}>🎯 Tailored Sections</h2>
 
                 {!result && !loading && (
                   <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'rgba(232,230,240,0.25)' }}>
@@ -301,21 +307,41 @@ export default function AIResumePage() {
                       <div className="ar-section-title">⚡ New Skills Section</div>
                       <div className="ar-section-text">{result.skills}</div>
                     </div>
+
+                    {/* Template Selector */}
+                    <div style={{ marginTop: '1.25rem' }}>
+                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'rgba(232,230,240,0.6)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Choose Template</p>
+                      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <button className={`tmpl-btn ${template === 'classic' ? 'active' : ''}`} onClick={() => setTemplate('classic')}>
+                          📄 Classic<br/>
+                          <span style={{ fontSize: '0.72rem', opacity: 0.6 }}>Single column, ATS-friendly</span>
+                        </button>
+                        <button className={`tmpl-btn ${template === 'modern' ? 'active' : ''}`} onClick={() => setTemplate('modern')}>
+                          🎨 Modern<br/>
+                          <span style={{ fontSize: '0.72rem', opacity: 0.6 }}>Two column, visual</span>
+                        </button>
+                      </div>
+
+                      <button onClick={() => handleDownloadPDF(template)}
+                        style={{ width: '100%', background: 'linear-gradient(135deg,#059669,#0d9488)', color: 'white', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans' }}>
+                        ⬇ Download {template === 'classic' ? 'Classic' : 'Modern'} PDF
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* How it works */}
           <div className="ar-card" style={{ marginTop: '0.5rem' }}>
             <h2 style={{ fontFamily: 'Syne', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>💡 How it works</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
               {[
                 { icon: '📎', title: 'Upload Resume', desc: 'Upload your existing resume as PDF' },
                 { icon: '💼', title: 'Paste Job Description', desc: 'Copy the full job posting' },
-                { icon: '🤖', title: 'AI Tailors It', desc: 'Only Summary & Skills are rewritten to match' },
-                { icon: '📄', title: 'Download PDF', desc: 'Browser print dialog → Save as PDF' },
+                { icon: '🤖', title: 'AI Tailors It', desc: 'Only Summary & Skills are rewritten' },
+                { icon: '🎨', title: 'Choose Template', desc: 'Classic single col or Modern two col' },
+                { icon: '📄', title: 'Download PDF', desc: 'Browser print → Save as PDF' },
               ].map((step, i) => (
                 <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '1rem' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{step.icon}</div>
