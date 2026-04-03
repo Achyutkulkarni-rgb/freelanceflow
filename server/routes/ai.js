@@ -224,7 +224,7 @@ router.post('/interview-prep', async (req, res) => {
       model: 'llama-3.3-70b-versatile',
       messages: [{
         role: 'user',
-        content: `You are an expert interview coach. Generate 50 interview questions with answers for real company interviews.
+        content: `You are an expert interview coach. Generate 30 interview questions with detailed answers for real company interviews.
 
 Job Title: ${jobTitle || 'Software Developer'}
 Skills: ${skills || 'Not specified'}
@@ -232,17 +232,17 @@ Experience: ${experience || 'Fresher'}
 Job Description: ${jobDescription ? jobDescription.slice(0, 400) : 'Not specified'}
 
 Rules:
-- 20 Technical, 15 Behavioral, 10 HR, 5 Company/Role questions
-- question: max 100 characters
-- answer: max 150 characters, 1-2 sentences only
-- tip: max 60 characters
+- 12 Technical, 8 Behavioral, 6 HR, 4 Company/Role questions
+- question: max 120 characters
+- answer: detailed 3-5 sentences, practical and specific, minimum 200 characters
+- tip: max 80 characters, actionable advice
 
-Return ONLY a compact JSON array, no spaces between fields:
+Return ONLY a compact JSON array:
 [{"id":1,"category":"Technical","difficulty":"Easy","question":"...","answer":"...","tip":"..."}]
 
 Output ONLY valid JSON, nothing else.`
       }],
-      max_tokens: 4096,
+      max_tokens: 8192,
       temperature: 0.5,
     });
 

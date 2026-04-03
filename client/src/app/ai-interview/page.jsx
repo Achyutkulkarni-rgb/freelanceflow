@@ -73,6 +73,7 @@ export default function AIInterviewPage() {
         .ai-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0.75rem 1rem; color: #e8e6f0; font-size: 0.9rem; outline: none; font-family: 'DM Sans', sans-serif; }
         .ai-input::placeholder { color: rgba(232,230,240,0.3); }
         .ai-input:focus { border-color: rgba(124,58,237,0.6); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+        .ai-input option { background: #1a1a2e; color: #e8e6f0; }
         .ai-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
         .ai-btn { background: linear-gradient(135deg,#7c3aed,#2563eb); color: white; border: none; border-radius: 12px; padding: 0.875rem 1.5rem; font-weight: 600; font-size: 0.95rem; cursor: pointer; font-family: 'DM Sans', sans-serif; width: 100%; transition: opacity 0.2s; }
         .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -82,6 +83,7 @@ export default function AIInterviewPage() {
         .q-card.expanded { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.3); }
         .cat-btn { padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(232,230,240,0.6); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
         .cat-btn.active { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.5); color: #a78bfa; }
+        .answer-text { font-size: 0.875rem; line-height: 1.8; color: rgba(232,230,240,0.85); white-space: pre-wrap; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         .fade-in { animation: fadeIn 0.3s ease both; }
@@ -110,7 +112,7 @@ export default function AIInterviewPage() {
               AI Interview Prep
             </h1>
             <p style={{ color: 'rgba(232,230,240,0.5)', fontSize: '0.95rem' }}>
-              Get <strong style={{ color: '#a78bfa' }}>50+ real interview questions</strong> with detailed answers based on actual company interviews — Technical, Behavioral, HR & more.
+              Get <strong style={{ color: '#a78bfa' }}>30 real interview questions</strong> with detailed answers based on actual company interviews — Technical, Behavioral, HR & more.
             </p>
           </div>
 
@@ -156,7 +158,7 @@ export default function AIInterviewPage() {
                   {loading ? (
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                       <span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }}/>
-                      Generating 50+ questions...
+                      Generating questions...
                     </span>
                   ) : '🎯 Generate Interview Questions'}
                 </button>
@@ -175,15 +177,15 @@ export default function AIInterviewPage() {
                 <div className="ai-card" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
                   <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎤</div>
                   <h3 style={{ fontFamily: 'Syne', fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Ready to Prep?</h3>
-                  <p style={{ color: 'rgba(232,230,240,0.4)', fontSize: '0.9rem' }}>Fill in the job details and get 50+ real interview questions with answers</p>
+                  <p style={{ color: 'rgba(232,230,240,0.4)', fontSize: '0.9rem' }}>Fill in the job details and get 30 real interview questions with detailed answers</p>
                 </div>
               )}
 
               {loading && (
                 <div className="ai-card" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
-                  <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>AI is researching real interview questions...</p>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(232,230,240,0.35)' }}>Analyzing patterns from top companies. This takes 20-40 seconds.</p>
+                  <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>AI is generating detailed interview questions...</p>
+                  <p style={{ fontSize: '0.8rem', color: 'rgba(232,230,240,0.35)' }}>Analyzing patterns from top companies. Takes 20-40 seconds.</p>
                 </div>
               )}
 
@@ -198,10 +200,14 @@ export default function AIInterviewPage() {
                     ))}
                   </div>
 
-                  {/* Questions list */}
+                 {/* Questions list */}
                   <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.25rem' }}>
                     {filtered.map((q, i) => (
-                      <div key={q.id || i} className={`q-card ${expandedId === (q.id || i) ? 'expanded' : ''}`} onClick={() => setExpandedId(expandedId === (q.id || i) ? null : (q.id || i))}>
+                      <div
+                        key={q.id || i}
+                        className={`q-card ${expandedId === (q.id || i) ? 'expanded' : ''}`}
+                        onClick={() => setExpandedId(expandedId === (q.id || i) ? null : (q.id || i))}
+                      >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                           <span style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa', borderRadius: '8px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, minWidth: '28px', textAlign: 'center' }}>
                             {q.id || i + 1}
@@ -222,8 +228,8 @@ export default function AIInterviewPage() {
                             {expandedId === (q.id || i) && (
                               <div className="fade-in">
                                 <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '1rem', marginBottom: '0.75rem' }}>
-                                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#60a5fa', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>📝 Answer</p>
-                                  <p style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'rgba(232,230,240,0.85)' }}>{q.answer}</p>
+                                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#60a5fa', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>📝 Detailed Answer</p>
+                                  <p className="answer-text">{q.answer}</p>
                                 </div>
                                 {q.tip && (
                                   <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '8px', padding: '0.6rem 0.875rem' }}>
@@ -240,6 +246,35 @@ export default function AIInterviewPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Regenerate button */}
+                  <button
+                    onClick={() => {
+                      setQuestions([]);
+                      setExpandedId(null);
+                      setActiveCategory('All');
+                      handleSubmit();
+                    }}
+                    disabled={loading}
+                    style={{
+                      width: '100%',
+                      marginTop: '1rem',
+                      background: 'rgba(124,58,237,0.15)',
+                      border: '1px solid rgba(124,58,237,0.3)',
+                      color: '#a78bfa',
+                      borderRadius: '12px',
+                      padding: '0.75rem',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'DM Sans',
+                      opacity: loading ? 0.5 : 1,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    🔄 Generate 30 New Questions
+                  </button>
+
                 </div>
               )}
             </div>
